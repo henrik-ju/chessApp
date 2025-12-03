@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "chess.app"
+    namespace = "chess.chessGame"
     compileSdk {
         version = release(36)
     }
@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.runtime.saveable)
+    implementation(libs.androidx.compose.runtime.saved.instance.state)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

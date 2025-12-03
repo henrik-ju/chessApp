@@ -1,4 +1,4 @@
-package chess.app
+package chess.chessGame
 
 import org.junit.Test
 
