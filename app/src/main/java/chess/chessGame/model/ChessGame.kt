@@ -231,9 +231,9 @@ class ChessGame {
         val piece = getPieceAt(from) ?: return false
         val targetBackup = getPieceAt(to)
 
-        val originalFromRow = from.row
-        val originalFromCol = from.column
-        val originalToPiece = targetBackup
+        val originalKingPos = if (team == Piece.Team.WHITE) whiteKingPosition else blackKingPosition
+
+
         val originalPiecePosition = piece.position
 
         var capturedPawn: Piece? = null
@@ -250,10 +250,20 @@ class ChessGame {
         board[from.row][from.column] = null
         piece.position = to
 
+        var tempKingPos: Position? = null
+        if (piece is King) {
+            tempKingPos = originalKingPos
+            if (team == Piece.Team.WHITE) whiteKingPosition = to else blackKingPosition = to
+        }
+
         val inCheck = isChecked(team)
 
+        if (piece is King) {
+            if (team == Piece.Team.WHITE) whiteKingPosition = tempKingPos!! else blackKingPosition = tempKingPos!!
+        }
+
         board[from.row][from.column] = piece
-        board[to.row][to.column] = originalToPiece
+        board[to.row][to.column] = targetBackup
         piece.position = originalPiecePosition
         if (capturedPawn != null && capturedPawnPos != null) {
             board[capturedPawnPos.row][capturedPawnPos.column] = capturedPawn
@@ -297,21 +307,61 @@ class ChessGame {
 
     fun toFen(): String {
         val sb = StringBuilder()
+
+
         for (row in 0..7) {
             var empty = 0
             for (col in 0..7) {
                 val p = getPieceAt(row, col)
                 if (p == null) empty++ else {
                     if (empty > 0) { sb.append(empty); empty = 0 }
-                    sb.append(p.toString())
+                    sb.append(p.fenCh)
                 }
             }
             if (empty > 0) sb.append(empty)
             if (row < 7) sb.append('/')
         }
+
         sb.append(if (currentTeam == Piece.Team.WHITE) " w" else " b")
+
+        val whiteKing = getPieceAt(whiteKingPosition) as? King
+        val blackKing = getPieceAt(blackKingPosition) as? King
+
+        val whiteKingRook = getPieceAt(Position(7, 7)) as? Rook
+        val whiteQueenRook = getPieceAt(Position(7, 0)) as? Rook
+        val blackKingRook = getPieceAt(Position(0, 7)) as? Rook
+        val blackQueenRook = getPieceAt(Position(0, 0)) as? Rook
+
+        var castlingRights = ""
+        if (whiteKing != null && !whiteKing.hasMoved) {
+            if (whiteKingRook != null && !whiteKingRook.hasMoved) castlingRights += "K"
+            if (whiteQueenRook != null && !whiteQueenRook.hasMoved) castlingRights += "Q"
+        }
+        if (blackKing != null && !blackKing.hasMoved) {
+            if (blackKingRook != null && !blackKingRook.hasMoved) castlingRights += "k"
+            if (blackQueenRook != null && !blackQueenRook.hasMoved) castlingRights += "q"
+        }
+        if (castlingRights.isEmpty()) castlingRights = "-"
+
+        sb.append(" $castlingRights")
+
+        val enPassantSquare = if (lastDoublePushColumn != null) {
+            val rankNumber = if (currentTeam == Piece.Team.BLACK) 6 else 3
+            "${'a' + lastDoublePushColumn!!}$rankNumber"
+        } else {
+            "-"
+        }
+
+        sb.append(" $enPassantSquare")
+
+        sb.append(" 0")
+
+        sb.append(" 1")
+
         return sb.toString()
     }
+
+
 
     companion object {
         val Saver: Saver<ChessGame, String> = Saver(
@@ -326,20 +376,46 @@ class ChessGame {
             val parts = fen.split(" ")
             val rows = parts[0].split("/")
 
+            val castlingRights = parts.getOrNull(2) ?: "-"
+
+            val enPassantTarget = parts.getOrNull(3) ?: "-"
+
+
             for (r in 0..7) {
                 var c = 0
                 for (ch in rows[r]) {
                     if (ch.isDigit()) {
                         c += ch.digitToInt()
                     } else {
+                        if (c >= 8) break
+
                         val isWhite = ch.isUpperCase()
                         val team = if (isWhite) Piece.Team.WHITE else Piece.Team.BLACK
                         val type = ch.uppercaseChar()
 
                         val piece: Piece? = when (type) {
-                            'K' -> King(team, Position(r, c))
+                            'K' -> King(team, Position(r, c)).apply {
+                                if (team == Piece.Team.WHITE) {
+                                    game.whiteKingPosition = Position(r, c)
+
+                                    hasMoved = !(castlingRights.contains('K') || castlingRights.contains('Q'))
+                                } else {
+                                    game.blackKingPosition = Position(r, c)
+
+                                    hasMoved = !(castlingRights.contains('k') || castlingRights.contains('q'))
+                                }
+                            }
                             'Q' -> Queen(team, Position(r, c))
-                            'R' -> Rook(team, Position(r, c))
+                            'R' -> Rook(team, Position(r, c)).apply {
+
+                                if (team == Piece.Team.WHITE) {
+                                    if (r == 7 && c == 7) hasMoved = !castlingRights.contains('K') // King-side Rook
+                                    if (r == 7 && c == 0) hasMoved = !castlingRights.contains('Q') // Queen-side Rook
+                                } else {
+                                    if (r == 0 && c == 7) hasMoved = !castlingRights.contains('k') // King-side Rook
+                                    if (r == 0 && c == 0) hasMoved = !castlingRights.contains('q') // Queen-side Rook
+                                }
+                            }
                             'B' -> Bishop(team, Position(r, c))
                             'N' -> Knight(team, Position(r, c))
                             'P' -> Pawn(team, Position(r, c))
@@ -352,6 +428,17 @@ class ChessGame {
             }
 
             game.currentTeam = if (parts.getOrNull(1) == "w") Piece.Team.WHITE else Piece.Team.BLACK
+
+
+            if (enPassantTarget != "-") {
+
+                val fileChar = enPassantTarget[0]
+                game.lastDoublePushColumn = fileChar - 'a'
+            } else {
+                game.lastDoublePushColumn = null
+            }
+
+
             return game
         }
     }

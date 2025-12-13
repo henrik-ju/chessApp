@@ -89,7 +89,6 @@ fun LoginScreen(
                 if (email.isBlank() || password.isBlank()) { // Input validation check
                     vm.setError("Enter email and password")
                 } else {
-                    // Call ViewModel with email
                     vm.login(email, password)
                 }
             },

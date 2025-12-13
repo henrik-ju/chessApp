@@ -1,5 +1,6 @@
 package chess.chessGame.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -29,7 +31,12 @@ fun PromotionDialog(
     onSelect: (Piece) -> Unit,
     onDismiss: () -> Unit
 ){
-    val pieces = listOf("Queen", "Rook", "Bishop", "Knight")
+    val pieces = listOf(
+        Queen(team, Position(0, 0)),
+        Rook(team, Position(0, 0)),
+        Bishop(team, Position(0, 0)),
+        Knight(team, Position(0, 0))
+    )
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(8.dp),
@@ -38,22 +45,18 @@ fun PromotionDialog(
             Column(modifier = Modifier.padding(16.dp)){
                 Text("Choose a piece", fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                pieces.forEach { pieceName ->
+                pieces.forEach { piece ->
                     Button(
                         onClick = {
-                            val position = Position(0, 0)
-                            val piece = when(pieceName){
-                                "Queen" -> Queen(team, position)
-                                "Rook" -> Rook(team, position)
-                                "Bishop" -> Bishop(team, position)
-                                "Knight" -> Knight(team, position)
-                                else -> null
-                            }
-                            piece?.let { onSelect(it) }
+                            onSelect(piece)
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ){
-                        Text(pieceName)
+                        Image(
+                            painter = painterResource(id = PieceDrawables.getDrawable(piece)),
+                            contentDescription = piece.fenCh.toString(),
+                            modifier = Modifier.height(32.dp)
+                        )
                     }
                 }
             }

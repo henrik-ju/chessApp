@@ -2,6 +2,8 @@ package chess.chessGame.model
 
 class Bishop(team: Team, position: Position?) : Piece(team, position) {
 
+    override val fenCh: Char = if (team == Team.WHITE) 'B' else 'b'
+
     override fun getLegalMoves(board: ChessGame): List<Position> {
         return getMoves(board).filter { move ->
             !board.wouldBeChecked(position!!, move, team)

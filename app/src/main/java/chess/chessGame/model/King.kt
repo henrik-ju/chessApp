@@ -2,6 +2,7 @@ package chess.chessGame.model
 
 class King(team: Team, position: Position?) : Piece(team, position) {
     var hasMoved = false
+    override val fenCh: Char = if (team == Team.WHITE) 'K' else 'k'
 
     override fun getLegalMoves(board: ChessGame): List<Position> {
         return getMoves(board).filter { move ->

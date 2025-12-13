@@ -4,6 +4,8 @@ class Pawn(team: Team, position: Position?) : Piece(team, position) {
     private val dir = if (isWhite()) -1 else 1
     private val startRow = if (isWhite()) 6 else 1
 
+    override val fenCh: Char = if (team == Team.WHITE) 'P' else 'p'
+
     override fun getMoves(board: ChessGame): List<Position> {
         val moves = mutableListOf<Position>()
         val current = position ?: return moves

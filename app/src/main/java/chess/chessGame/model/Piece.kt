@@ -4,6 +4,11 @@ abstract class Piece(
     val team: Team,
     var position: Position?
 ) {
+
+    abstract val fenCh: Char
+
+
+
     enum class Team {
         WHITE,
         BLACK

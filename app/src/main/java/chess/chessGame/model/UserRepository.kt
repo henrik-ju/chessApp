@@ -6,7 +6,12 @@ import kotlinx.coroutines.tasks.await
 
 class UserRepository{
 
-    private val db = FirebaseDatabase.getInstance().reference.child("users")
+    companion object {
+        private const val DATABASE_URL = "https://androidproject-b0580-default-rtdb.europe-west1.firebasedatabase.app"
+    }
+
+
+    private val db = FirebaseDatabase.getInstance(DATABASE_URL).reference.child("users")
     private val auth = FirebaseAuth.getInstance()
 
     suspend fun createAccount(email: String, password: String, username: String): Boolean {

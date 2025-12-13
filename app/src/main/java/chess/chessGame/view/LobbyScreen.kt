@@ -66,7 +66,11 @@ fun LobbyScreen(
                     onJoin = {
                         scope.launch {
                             val joined = vm.joinGame(game.id)
-                            joined?.let(onGameSelected)
+                            if (joined != null) {
+                                onGameSelected(joined)
+                            } else {
+                                println("Failed to join game ${game.id.take(4)}. It may be full or a network issue occurred.")
+                            }
                         }
                     },
                     onResume = { onGameSelected(game) }
@@ -107,7 +111,7 @@ fun GameLobbyItem(
                     Button(onClick = onResume){
                         Text("Resume")
                     }
-                game.players < 2 ->
+                game.whitePlayer == null || game.blackPlayer == null ->
                     Button(onClick = onJoin){
                         Text("Join")
                     }

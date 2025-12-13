@@ -23,12 +23,20 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentUserEmail = MutableStateFlow(userRepository.getCurrentUserEmail())
     val currentUserEmail: StateFlow<String?> = _currentUserEmail
 
+    private val _currentUserUid = MutableStateFlow(userRepository.getCurrentUserId())
+    val currentUserUid: StateFlow<String?> = _currentUserUid
+
+
     private val _currentDisplayUsername = MutableStateFlow(preference.getString("display_username", null))
-    val currentDisplayUsername: StateFlow<String?> = _currentDisplayUsername
+
+    private val _ready = MutableStateFlow(false)
+    val ready: StateFlow<Boolean> = _ready
 
     init {
         if (_loggedIn.value) {
             fetchAndSetUsername()
+        } else {
+            _ready.value = true
         }
     }
 
@@ -42,6 +50,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     preference.edit().putString("display_username", username).apply()
                 }
             }
+
+            _ready.value = true
         }
     }
 
@@ -55,6 +65,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     _loggedIn.value = true
                     _loginError.value = ""
                     fetchAndSetUsername()
+                    _currentUserUid.value = userRepository.getCurrentUserId()
                 } else {
                     _loginError.value = "Incorrect email or password"
                 }
@@ -72,12 +83,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 preference.edit().putString("email", email).apply()
                 preference.edit().putString("display_username", username).apply()
                 _currentDisplayUsername.value = username
-
                 _currentUserEmail.value = userRepository.getCurrentUserEmail()
                 _loggedIn.value = true
                 _loginError.value = ""
+                _ready.value = true
+                _currentUserUid.value = userRepository.getCurrentUserId()
             } else {
                 _loginError.value = "Account creation failed (email might be in use or password too weak)"
+                _ready.value = true
             }
         }
     }
@@ -92,6 +105,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _currentUserEmail.value = null
         _currentDisplayUsername.value = null
         _loggedIn.value = false
+        _ready.value = true
+        _currentUserUid.value = null
     }
 
     fun setError(message: String) {
