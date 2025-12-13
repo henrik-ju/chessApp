@@ -5,22 +5,37 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import chess.chessGame.model.*
+import kotlinx.coroutines.launch
 import viewModel.ChessViewModel
 
 @Composable
@@ -31,31 +46,19 @@ fun GameScreen(
     val game by viewModel.game
     val selected by viewModel.selected
     val moveError by viewModel.moveError
-    var promotionPosition by remember { mutableStateOf<Position?>(null)}
-    var promotionTeam by remember { mutableStateOf<Piece.Team?>(null) }
 
-    LaunchedEffect(game){
-        game.onPromotion = { team, pos ->
-            promotionTeam = team
-            promotionPosition = pos
-        }
-    }
+    val scrollState = rememberScrollState()
 
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
 
-
-        Text(
-            text = "Game ID: ${gameId.take(8)}...",
-            style = MaterialTheme.typography.titleSmall,
-            color = Color.Gray
-        )
 
         Text(
             text = "You are: ${if (viewModel.userTeam == Piece.Team.WHITE) "White" else "Black"}",
@@ -99,15 +102,20 @@ fun GameScreen(
             onSquareClick = viewModel::onSquareClicked
         )
 
-        promotionPosition?.let { pos ->
+        Spacer(Modifier.height(24.dp))
+        ChatBox(viewModel = viewModel)
+        Spacer(Modifier.height(16.dp))
+
+        viewModel.promotionPosition.value?.let { pos ->
             PromotionDialog(
-                team = promotionTeam!!,
+
+                team = game.currentTeam.otherTeam(),
+
                 onSelect = { newPiece ->
-                    viewModel.promotePawn(pos, newPiece)
-                    promotionPosition = null
+                    viewModel.promotePawn(newPiece)
                 },
                 onDismiss = {
-                    promotionPosition = null
+                    viewModel.promotePawn(Queen(game.currentTeam.otherTeam(), pos))
                 }
             )
         }
@@ -176,6 +184,81 @@ fun Chessboard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ChatBox(viewModel: ChessViewModel) {
+    val messages by viewModel.decryptedChatMessages.collectAsState(initial = emptyList())
+    var messageInput by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 75.dp, max = 300.dp)
+            .padding(top = 8.dp)
+            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(8.dp)
+                .fillMaxWidth(),
+            reverseLayout = true
+        ) {
+            items(messages.reversed()) { (sender, text) ->
+                val isMe = sender == "You"
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            style = SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                                color = if (isMe) Color.Blue else Color.Red
+                            )
+                        ) {
+                            append(sender)
+                            append(": ")
+                        }
+
+                        append(text)
+                    },
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp)
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = messageInput,
+                onValueChange = { messageInput = it },
+                label = { Text("Encrypted Message") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    if (messageInput.isNotBlank()) {
+                        scope.launch {
+                            viewModel.sendChatMessage(messageInput)
+                            messageInput = ""
+                        }
+                    }
+                },
+                enabled = messageInput.isNotBlank(),
+            ) {
+                Text("Send")
             }
         }
     }

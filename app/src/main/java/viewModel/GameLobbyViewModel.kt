@@ -67,7 +67,7 @@ class GameLobbyViewModel(
             id = UUID.randomUUID().toString(),
             whitePlayer = _currentUser,
             blackPlayer = null,
-            fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" // Standard starting FEN
+            fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         )
 
         return try {

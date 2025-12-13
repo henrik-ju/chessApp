@@ -86,7 +86,7 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                if (email.isBlank() || password.isBlank()) { // Input validation check
+                if (email.isBlank() || password.isBlank()) {
                     vm.setError("Enter email and password")
                 } else {
                     vm.login(email, password)

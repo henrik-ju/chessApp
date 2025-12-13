@@ -66,3 +66,10 @@ abstract class Piece(
         }
     }
 }
+
+fun Piece.Team.otherTeam(): Piece.Team {
+    return when (this) {
+        Piece.Team.WHITE -> Piece.Team.BLACK
+        Piece.Team.BLACK -> Piece.Team.WHITE
+    }
+}

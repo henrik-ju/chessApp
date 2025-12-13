@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import chess.chessGame.model.FirebaseChess
@@ -29,11 +30,19 @@ class MainActivity : ComponentActivity() {
     private val firebaseChessService = FirebaseChess
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val splashScreen = installSplashScreen()
+
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
 
+        splashScreen.setKeepOnScreenCondition {
+            !authViewModel.ready.value
+        }
+
 
         setContent {
+            val isReady by authViewModel.ready.collectAsState()
             AndroidProjectTheme {
                 Surface(
                     modifier = Modifier
@@ -71,7 +80,8 @@ class MainActivity : ComponentActivity() {
                     ChessNavHost(
                         navController = navController,
                         authVm = authViewModel,
-                        gameLobbyVm = gameLobbyViewModel
+                        gameLobbyVm = gameLobbyViewModel,
+                        isReady = isReady
                     )
 
 

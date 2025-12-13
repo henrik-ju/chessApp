@@ -76,7 +76,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun createAccount(email: String, password: String, username: String) { // ADDED username parameter
+    fun createAccount(email: String, password: String, username: String) {
         viewModelScope.launch {
             val created = userRepository.createAccount(email, password, username)
             if(created){

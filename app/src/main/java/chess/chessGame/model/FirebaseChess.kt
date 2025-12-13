@@ -19,7 +19,6 @@ object FirebaseChess {
 
     fun createGame(game: GameLobby) {
         database.child(game.id).setValue(game)
-
     }
 
     fun stopListeningToGame(listener: ValueEventListener, gameId: String) {
@@ -39,26 +38,23 @@ object FirebaseChess {
             null
         }
     }
+
     suspend fun updateGameFenTransaction(gameId: String, newFen: String): Boolean {
         val gameRef = database.child(gameId)
 
         return suspendCancellableCoroutine { continuation ->
             gameRef.runTransaction(object : Transaction.Handler {
                 override fun doTransaction(mutableData: MutableData): Transaction.Result {
-
                     mutableData.child("fen").value = newFen
-
                     return Transaction.success(mutableData)
                 }
 
                 override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
                     if (continuation.isCancelled) return
-
                     if (error != null) {
                         println("FEN transaction error: ${error.message}")
                         continuation.resume(false)
                     } else {
-
                         continuation.resume(committed)
                     }
                 }
@@ -66,7 +62,7 @@ object FirebaseChess {
         }
     }
 
-    fun listenToGame(gameId: String, onUpdate: (GameLobby) -> Unit): ValueEventListener { // <--- Changed return type
+    fun listenToGame(gameId: String, onUpdate: (GameLobby) -> Unit): ValueEventListener {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 snapshot.getValue(GameLobby::class.java)?.let { onUpdate(it)}
@@ -103,7 +99,6 @@ object FirebaseChess {
                     onUpdate(games.values.toList())
                 }
             }
-
 
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
             override fun onCancelled(error: DatabaseError) {
@@ -151,7 +146,69 @@ object FirebaseChess {
                     }
                 }
             })
+        }
+    }
 
+    fun sendChatMessage(gameId: String, message: ChatMessage) {
+        val messagesRef = database.child(gameId).child("messages")
+        messagesRef.push().setValue(message)
+    }
+
+    fun listenToChat(gameId: String, onUpdate: (List<ChatMessage>) -> Unit): ValueEventListener {
+        val messagesRef = database.child(gameId).child("messages")
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val messages = snapshot.children.mapNotNull { childSnapshot ->
+
+                    childSnapshot.getValue(ChatMessage::class.java)
+                }.sortedBy { it.timestamp }
+                onUpdate(messages)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Chat listener cancelled for game $gameId: ${error.message}")
+            }
+        }
+
+        messagesRef.addValueEventListener(listener)
+        return listener
+    }
+
+    suspend fun getOrCreateGameKey(gameId: String, newKey: String): String {
+        val keyRef = database.child(gameId).child("chatKey")
+
+        return suspendCancellableCoroutine { continuation ->
+            keyRef.runTransaction(object : Transaction.Handler {
+                override fun doTransaction(mutableData: MutableData): Transaction.Result {
+                    val existingKey = mutableData.value as? String
+
+                    if (existingKey != null) {
+                        return Transaction.success(mutableData)
+                    }
+                    mutableData.value = newKey
+                    return Transaction.success(mutableData)
+                }
+
+                override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                    if (continuation.isCancelled) return
+
+                    if (error != null) {
+                        println("Error during key transaction: ${error.message}")
+                        continuation.resumeWith(Result.failure(error.toException()))
+                    } else if (snapshot != null) {
+                        val finalKey = snapshot.value as? String
+
+                        if (finalKey != null) {
+                            continuation.resume(finalKey)
+                        } else {
+                            continuation.resumeWith(Result.failure(Exception("Key was unexpectedly null after transaction.")))
+                        }
+                    } else {
+                        continuation.resumeWith(Result.failure(Exception("Key transaction failed unexpectedly.")))
+                    }
+                }
+            })
         }
     }
 }
