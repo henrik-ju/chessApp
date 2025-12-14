@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chess.chessGame.model.FirebaseChess
 import chess.chessGame.model.GameLobby
+import chess.chessGame.model.Piece
 import com.google.firebase.database.ChildEventListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Collections.list
-
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 class GameLobbyViewModel(
@@ -37,8 +37,6 @@ class GameLobbyViewModel(
         }
     }
 
-
-
     fun startListening() {
         println("startListening called, currentUser = $_currentUser, listeningStarted = $listeningStarted")
         if(!listeningStarted){
@@ -52,6 +50,7 @@ class GameLobbyViewModel(
             }
         }
     }
+
     fun stopListening() {
         if (listeningStarted) {
             (listenerRegistration as? ChildEventListener)?.let { listener ->
@@ -61,19 +60,26 @@ class GameLobbyViewModel(
         }
     }
 
+    suspend fun startNewGame(playerTeam: Piece.Team): String? {
 
-    suspend fun startNewGame(): GameLobby? {
+        val whitePlayerId: String? = if (playerTeam == Piece.Team.WHITE) _currentUser else null
+        val blackPlayerId: String? = if (playerTeam == Piece.Team.BLACK) _currentUser else null
+
         val newGame = GameLobby(
             id = UUID.randomUUID().toString(),
-            whitePlayer = _currentUser,
-            blackPlayer = null,
+            whitePlayer = whitePlayerId,
+            blackPlayer = blackPlayerId,
             fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         )
 
         return try {
             firebaseService.createGame(newGame)
-            onNavigateToGame(newGame.id, "WHITE")
-            newGame
+
+            withContext(Dispatchers.Main) {
+                onNavigateToGame(newGame.id, playerTeam.name)
+            }
+
+            newGame.id
 
         } catch (e: Exception) {
             println("Error creating new game: ${e.message}")
@@ -93,7 +99,10 @@ class GameLobbyViewModel(
                     return updatedGame
                 }
             }
-            onNavigateToGame(gameId, assignedColor)
+
+            withContext(Dispatchers.Main) {
+                onNavigateToGame(gameId, assignedColor)
+            }
         }
         return updatedGame
     }

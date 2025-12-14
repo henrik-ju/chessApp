@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,9 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -139,12 +136,8 @@ fun Chessboard(
             .size(380.dp)
             .border(4.dp, Color.Black)
             .background(Color(0xFF121212))
+            .fillMaxWidth()
     ) {
-        val validMoves: Set<Position> = if (selected != null) {
-            game.getValidMoves(selected)
-        } else {
-            emptySet()
-        }
 
         val rowRange = if (userTeam == Piece.Team.WHITE) 0..7 else 7 downTo 0
         val columnRange = if (userTeam == Piece.Team.WHITE) 0..7 else 7 downTo 0
@@ -156,7 +149,6 @@ fun Chessboard(
                     val piece = game.getPieceAt(pos)
                     val isLight = (row + col) % 2 == 0
                     val isSelected = selected == pos
-                    val isValidDestination = validMoves.contains(pos)
 
                     val squareColor = when {
                         isSelected -> selectedColor
@@ -241,7 +233,7 @@ fun ChatBox(viewModel: ChessViewModel) {
             OutlinedTextField(
                 value = messageInput,
                 onValueChange = { messageInput = it },
-                label = { Text("Encrypted Message") },
+                label = { Text("Message") },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp)

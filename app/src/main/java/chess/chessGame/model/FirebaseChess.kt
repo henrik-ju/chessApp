@@ -21,9 +21,6 @@ object FirebaseChess {
         database.child(game.id).setValue(game)
     }
 
-    fun stopListeningToGame(listener: ValueEventListener, gameId: String) {
-        database.child(gameId).removeEventListener(listener)
-    }
 
     fun stopListeningToAllGames(listener: ChildEventListener) {
         database.removeEventListener(listener)

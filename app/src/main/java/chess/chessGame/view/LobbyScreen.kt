@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
 fun LobbyScreen(
     vm: GameLobbyViewModel,
     navController: NavHostController,
-    onGameSelected: (GameLobby) -> Unit
+    onGameSelected: (GameLobby) -> Unit,
+    onLogout: () -> Unit
 
 ) {
     val scope = rememberCoroutineScope()
@@ -38,8 +39,19 @@ fun LobbyScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-    ){
+    ){ Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text("Chess Game Lobby", style = MaterialTheme.typography.headlineSmall)
+
+        Button(
+            onClick = onLogout
+        ) {
+            Text("Logout")
+        }
+    }
 
         Spacer(modifier = Modifier
             .height(16.dp)
@@ -100,7 +112,7 @@ fun GameLobbyItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column{
+            Column(modifier = Modifier.weight(1f)) {
                 Text("Game ${game.id.take(4)}")
                 Text("White ${game.whitePlayer ?: "-"}")
                 Text("Black ${game.blackPlayer ?: "-"}")

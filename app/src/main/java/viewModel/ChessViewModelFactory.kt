@@ -3,7 +3,6 @@ package viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import chess.chessGame.model.FirebaseChess
-import chess.chessGame.model.GameLobby
 import chess.chessGame.model.Piece
 
 class ChessViewModelFactory(

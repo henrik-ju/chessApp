@@ -2,16 +2,14 @@ package chess.chessGame.navigation
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -42,7 +40,7 @@ fun ChessNavHost(
 ) {
     val currentUserEmail by authVm.currentUserEmail.collectAsState()
 
-    var showLoadingDelay by remember { mutableStateOf(true) }
+    var showLoadingDelay by rememberSaveable { mutableStateOf(true) }
 
     LaunchedEffect(isReady) {
         if (isReady) {
@@ -70,6 +68,7 @@ fun ChessNavHost(
                 val isLoggedIn by authVm.loggedIn.collectAsState()
                 CreateAccountScreen(
                     vm = authVm,
+                    navController = navController
                 )
 
                 LaunchedEffect(isLoggedIn) {
@@ -92,6 +91,14 @@ fun ChessNavHost(
                         onGameSelected = { game: GameLobby ->
                             scope.launch {
                                 gameLobbyVm.joinGame(game.id)
+                            }
+                        },
+                        onLogout = {
+                            scope.launch {
+                                authVm.logout()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(Screen.Lobby.route) { inclusive = true }
+                                }
                             }
                         }
                     )
@@ -124,6 +131,7 @@ fun ChessNavHost(
                 val userTeam = try {
                     Piece.Team.valueOf(playerColorString)
                 } catch (e: IllegalArgumentException) {
+                    println("ERROR: Invalid playerColor string received in navigation: $playerColorString. Error: ${e.message}")
                     Piece.Team.WHITE
                 }
 

@@ -17,7 +17,7 @@ private const val GCM_TAG_LENGTH = 16
 
 private const val BASE64_FLAGS = Base64.NO_WRAP
 
-object Crypting {
+object Crypto {
 
     fun generateNewSecretKey(): String {
         val keyGen = KeyGenerator.getInstance(ALGORITHM)

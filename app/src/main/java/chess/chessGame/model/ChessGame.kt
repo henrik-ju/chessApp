@@ -1,6 +1,5 @@
 package chess.chessGame.model
 
-import androidx.compose.runtime.saveable.Saver
 import kotlin.math.abs
 
 class ChessGame {
@@ -364,10 +363,6 @@ class ChessGame {
 
 
     companion object {
-        val Saver: Saver<ChessGame, String> = Saver(
-            save = { it.toFen() },
-            restore = { fen -> fromFen(fen) }
-        )
 
         fun fromFen(fen: String): ChessGame {
             val game = ChessGame()
@@ -442,9 +437,4 @@ class ChessGame {
             return game
         }
     }
-}
-
-fun ChessGame.getValidMoves(from: Position): Set<Position> {
-    val piece = getPieceAt(from) ?: return emptySet()
-    return piece.getLegalMoves(this).toSet()
 }
