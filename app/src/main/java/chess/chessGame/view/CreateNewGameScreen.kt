@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -21,7 +26,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import chess.chessGame.model.Piece
@@ -98,33 +105,49 @@ fun CreateGameScreen(
         }
     }
 }
-
 @Composable
 fun ColorSelectionButton(
     team: Piece.Team,
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
-    val color = when (team) {
-        Piece.Team.WHITE -> Color.White
-        Piece.Team.BLACK -> Color.Black
-    }
-    val textColor = when (team) {
-        Piece.Team.WHITE -> Color.Black
-        Piece.Team.BLACK -> Color.White
-    }
+    val containerColor = if (team == Piece.Team.WHITE) Color.White else Color.Black
+    val contentColor = if (team == Piece.Team.WHITE) Color.Black else Color.White
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.5f)
 
     OutlinedButton(
         onClick = onSelect,
+        modifier = Modifier
+            .size(width = 120.dp, height = 60.dp)
+            .alpha(if (isSelected) 1f else 0.6f),
         border = BorderStroke(
-            width = if (isSelected) 3.dp else 1.dp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray
+            width = if (isSelected) 4.dp else 1.dp,
+            color = borderColor
         ),
-        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-            containerColor = color,
-            contentColor = textColor
-        )
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        ),
+        elevation = if (isSelected) ButtonDefaults.buttonElevation(8.dp) else null
     ) {
-        Text(team.name)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = contentColor
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            Text(
+                text = team.name,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+        }
     }
 }

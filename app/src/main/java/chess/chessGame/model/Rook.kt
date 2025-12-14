@@ -1,9 +1,7 @@
 package chess.chessGame.model
 
-
 class Rook(team: Team, position: Position?) : Piece(team, position) {
     var hasMoved = false
-
     override val fenCh: Char = if (team == Team.WHITE) 'R' else 'r'
 
     override fun getLegalMoves(board: ChessGame): List<Position> {

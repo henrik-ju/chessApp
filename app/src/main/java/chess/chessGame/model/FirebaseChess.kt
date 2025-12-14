@@ -13,19 +13,15 @@ import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 
 object FirebaseChess {
-
     private const val DATABASE_URL = "https://androidproject-b0580-default-rtdb.europe-west1.firebasedatabase.app"
     private val database: DatabaseReference = FirebaseDatabase.getInstance(DATABASE_URL).reference.child("games")
 
     fun createGame(game: GameLobby) {
         database.child(game.id).setValue(game)
     }
-
-
     fun stopListeningToAllGames(listener: ChildEventListener) {
         database.removeEventListener(listener)
     }
-
     suspend fun getGame(gameId: String): GameLobby? {
         return try {
             val snapshot = database.child(gameId).get().await()
@@ -35,7 +31,6 @@ object FirebaseChess {
             null
         }
     }
-
     suspend fun updateGameFenTransaction(gameId: String, newFen: String): Boolean {
         val gameRef = database.child(gameId)
 
@@ -58,7 +53,6 @@ object FirebaseChess {
             })
         }
     }
-
     fun listenToGame(gameId: String, onUpdate: (GameLobby) -> Unit): ValueEventListener {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -71,7 +65,6 @@ object FirebaseChess {
         database.child(gameId).addValueEventListener(listener)
         return listener
     }
-
     fun listenToAllGames(onUpdate: (List<GameLobby>) -> Unit): ChildEventListener {
         val games = mutableMapOf<String, GameLobby>()
 
@@ -106,7 +99,6 @@ object FirebaseChess {
         database.addChildEventListener(listener)
         return listener
     }
-
     suspend fun joinGame(gameId: String, username: String): GameLobby? {
         val gameRef = database.child(gameId)
 
@@ -145,12 +137,10 @@ object FirebaseChess {
             })
         }
     }
-
     fun sendChatMessage(gameId: String, message: ChatMessage) {
         val messagesRef = database.child(gameId).child("messages")
         messagesRef.push().setValue(message)
     }
-
     fun listenToChat(gameId: String, onUpdate: (List<ChatMessage>) -> Unit): ValueEventListener {
         val messagesRef = database.child(gameId).child("messages")
 
@@ -171,7 +161,6 @@ object FirebaseChess {
         messagesRef.addValueEventListener(listener)
         return listener
     }
-
     suspend fun getOrCreateGameKey(gameId: String, newKey: String): String {
         val keyRef = database.child(gameId).child("chatKey")
 
@@ -206,6 +195,28 @@ object FirebaseChess {
                     }
                 }
             })
+        }
+    }
+
+    suspend fun getOpponentInfo(gameId: String, currentUsername: String): Pair<String?, String?> {
+        val game = getGame(gameId) ?: return null to null
+        val opponentUsername = when (currentUsername) {
+            game.whitePlayer -> game.blackPlayer
+            game.blackPlayer -> game.whitePlayer
+            else -> null
+        }
+        val opponentPhotoUrl = opponentUsername?.let { getProfilePhotoUrl(it) }
+        return opponentUsername to opponentPhotoUrl
+    }
+
+    suspend fun getProfilePhotoUrl(uid: String): String? {
+        val userRef = FirebaseDatabase.getInstance(DATABASE_URL).reference.child("users").child(uid)
+        return try {
+            val snapshot = userRef.child("photoUrl").get().await()
+            snapshot.getValue(String::class.java)
+        } catch (e: Exception) {
+            println("Error fetching photo URL for $uid: ${e.message}")
+            null
         }
     }
 }

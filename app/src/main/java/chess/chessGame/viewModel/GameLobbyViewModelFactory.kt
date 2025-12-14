@@ -9,6 +9,8 @@ class GameLobbyViewModelFactory(
     val firebaseService: FirebaseChess,
     private val onNavigateToGame: (gameId: String, assignedColor: String) -> Unit
 ) : ViewModelProvider.Factory {
+
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(GameLobbyViewModel::class.java)) {
             return GameLobbyViewModel(

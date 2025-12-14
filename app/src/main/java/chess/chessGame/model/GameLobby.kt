@@ -1,7 +1,6 @@
 package chess.chessGame.model
 
 import com.google.firebase.database.Exclude
-
 data class GameLobby(
     val id: String ="",
     val whitePlayer: String? = null,

@@ -56,7 +56,6 @@ object Crypto {
             throw RuntimeException("Encryption failure!", e)
         }
     }
-
     fun decrypt(encryptedData: String, secretKey: SecretKey): String {
         try {
             val combined = Base64.decode(encryptedData, BASE64_FLAGS)

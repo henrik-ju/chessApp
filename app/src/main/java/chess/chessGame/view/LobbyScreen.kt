@@ -21,6 +21,10 @@ import androidx.compose.ui.unit.dp
 import chess.chessGame.model.GameLobby
 import chess.chessGame.viewModel.GameLobbyViewModel
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import chess.chessGame.navigation.Screen
@@ -31,41 +35,71 @@ fun LobbyScreen(
     vm: GameLobbyViewModel,
     navController: NavHostController,
     onGameSelected: (GameLobby) -> Unit,
-    onLogout: () -> Unit
-
+    onLogout: () -> Unit,
+    userRole: String,
+    onAccountSettingsClick: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-    ){ Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Chess Game Lobby", style = MaterialTheme.typography.headlineSmall)
-
-        Button(
-            onClick = onLogout
+    ){
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Logout")
+            Text("Chess Game Lobby", style = MaterialTheme.typography.headlineSmall)
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (userRole != "guest") {
+                    IconButton(
+                        onClick = onAccountSettingsClick,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Account Settings",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = onLogout
+                ) {
+                    Text("Logout")
+                }
+            }
         }
-    }
 
-        Spacer(modifier = Modifier
-            .height(16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                navController.navigate(Screen.CreateGame.route)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-
-        ){
-            Text("Start New Game")
+        if (userRole == "guest") {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Create an account to start or join a game.",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { navController.navigate(Screen.Login.route) }) {
+                    Text("Log In / Sign Up")
+                }
+            }
+        } else {
+            Button(
+                onClick = {
+                    navController.navigate(Screen.CreateGame.route)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ){
+                Text("Start New Game")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -85,19 +119,20 @@ fun LobbyScreen(
                             }
                         }
                     },
-                    onResume = { onGameSelected(game) }
+                    onResume = { onGameSelected(game) },
+                    userRole = userRole
                 )
             }
         }
     }
 }
-
 @Composable
 fun GameLobbyItem(
     game: GameLobby,
     currentUser: String,
     onJoin: () -> Unit,
-    onResume: () -> Unit
+    onResume: () -> Unit,
+    userRole: String
 ){
     Card(
         modifier = Modifier
@@ -116,23 +151,20 @@ fun GameLobbyItem(
                 Text("Game ${game.id.take(4)}")
                 Text("White ${game.whitePlayer ?: "-"}")
                 Text("Black ${game.blackPlayer ?: "-"}")
-
             }
             when {
                 game.whitePlayer == currentUser || game.blackPlayer == currentUser ->
                     Button(onClick = onResume){
                         Text("Resume")
                     }
-                game.whitePlayer == null || game.blackPlayer == null ->
+                userRole != "guest" && (game.whitePlayer == null || game.blackPlayer == null) ->
                     Button(onClick = onJoin){
                         Text("Join")
                     }
+                userRole == "guest" && (game.whitePlayer == null || game.blackPlayer == null) ->
+                    Text("Available")
                 else -> Text("Full Game")
-
             }
         }
-
     }
-
 }
-

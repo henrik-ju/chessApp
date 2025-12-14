@@ -20,29 +20,22 @@ class GameLobbyViewModel(
 
     val games = mutableStateListOf<GameLobby>()
     private var listenerRegistration: Any? = null
-
     private var listeningStarted = false
-
-    init {
-        if (_currentUser != "Guest" && _currentUser != "initializing"){
-            startListening()
-        }
-    }
 
     fun onUserLoggedIn(newUid: String) {
         if (_currentUser != newUid) {
             stopListening()
             _currentUser = newUid
-            startListening()
+            if (_currentUser != "Guest" && _currentUser != "initializing") {
+                startListening()
+            }
         }
     }
 
     fun startListening() {
-        println("startListening called, currentUser = $_currentUser, listeningStarted = $listeningStarted")
         if(!listeningStarted){
             listeningStarted = true
             listenerRegistration = firebaseService.listenToAllGames { list ->
-                println("Lobby Update Received: ${list.size} games. First game ID: ${list.firstOrNull()?.id?.take(4)}")
                 viewModelScope.launch(Dispatchers.Main){
                     games.clear()
                     games.addAll(list)
@@ -61,7 +54,6 @@ class GameLobbyViewModel(
     }
 
     suspend fun startNewGame(playerTeam: Piece.Team): String? {
-
         val whitePlayerId: String? = if (playerTeam == Piece.Team.WHITE) _currentUser else null
         val blackPlayerId: String? = if (playerTeam == Piece.Team.BLACK) _currentUser else null
 
@@ -71,14 +63,12 @@ class GameLobbyViewModel(
             blackPlayer = blackPlayerId,
             fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         )
-
         return try {
             firebaseService.createGame(newGame)
 
             withContext(Dispatchers.Main) {
                 onNavigateToGame(newGame.id, playerTeam.name)
             }
-
             newGame.id
 
         } catch (e: Exception) {
@@ -86,7 +76,6 @@ class GameLobbyViewModel(
             null
         }
     }
-
     suspend fun joinGame(gameId: String): GameLobby? {
         val updatedGame = firebaseService.joinGame(gameId, _currentUser)
 
@@ -99,14 +88,12 @@ class GameLobbyViewModel(
                     return updatedGame
                 }
             }
-
             withContext(Dispatchers.Main) {
                 onNavigateToGame(gameId, assignedColor)
             }
         }
         return updatedGame
     }
-
     val currentUser: String
         get() = _currentUser
 }

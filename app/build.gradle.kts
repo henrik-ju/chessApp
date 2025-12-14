@@ -62,6 +62,10 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.androidx.compose.animation.core.lint)
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("com.google.firebase:firebase-storage-ktx")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

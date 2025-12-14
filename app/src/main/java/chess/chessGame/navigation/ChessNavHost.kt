@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import chess.chessGame.model.FirebaseChess
 import chess.chessGame.model.GameLobby
 import chess.chessGame.model.Piece
+import chess.chessGame.view.AccountScreen
 import chess.chessGame.view.CreateAccountScreen
 import chess.chessGame.view.CreateGameScreen
 import chess.chessGame.view.GameScreen
@@ -30,7 +31,6 @@ import chess.chessGame.viewModel.ChessViewModel
 import chess.chessGame.viewModel.ChessViewModelFactory
 import chess.chessGame.viewModel.GameLobbyViewModel
 import chess.chessGame.view.ChessAppLoadingScreen
-
 @Composable
 fun ChessNavHost(
     navController: NavHostController,
@@ -39,16 +39,16 @@ fun ChessNavHost(
     isReady: Boolean
 ) {
     val currentUserEmail by authVm.currentUserEmail.collectAsState()
+    val userRole by authVm.userRole.collectAsState()
 
     var showLoadingDelay by rememberSaveable { mutableStateOf(true) }
 
     LaunchedEffect(isReady) {
         if (isReady) {
-            delay(5000)
+            delay(500)
             showLoadingDelay = false
         }
     }
-
     if (!isReady || showLoadingDelay) {
         ChessAppLoadingScreen()
     } else {
@@ -56,6 +56,13 @@ fun ChessNavHost(
             navController = navController,
             startDestination = Screen.Login.route
         ) {
+            composable(Screen.Account.route) {
+                AccountScreen(
+                    navController = navController,
+                    vm = authVm
+                )
+            }
+
             composable(Screen.Login.route) {
                 LoginScreen(
                     vm = authVm,
@@ -63,7 +70,6 @@ fun ChessNavHost(
                     onCreateAccount = { navController.navigate(Screen.CreateAccount.route) }
                 )
             }
-
             composable(Screen.CreateAccount.route) {
                 val isLoggedIn by authVm.loggedIn.collectAsState()
                 CreateAccountScreen(
@@ -79,7 +85,6 @@ fun ChessNavHost(
                     }
                 }
             }
-
             composable(Screen.Lobby.route) {
                 if (gameLobbyVm == null) {
                     Text("Please login")
@@ -100,12 +105,25 @@ fun ChessNavHost(
                                     popUpTo(Screen.Lobby.route) { inclusive = true }
                                 }
                             }
+                        },
+                        userRole = userRole,
+                        onAccountSettingsClick = {
+                            navController.navigate(Screen.Account.route)
                         }
                     )
                 }
             }
-
             composable(Screen.CreateGame.route) {
+                if (userRole == "guest") {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(Screen.Lobby.route) {
+                            popUpTo(Screen.Lobby.route) { inclusive = true }
+                        }
+                    }
+                    Text("Access denied: Redirecting...")
+                    return@composable
+                }
+
                 if (gameLobbyVm == null) {
                     Text("Please login")
                 } else {
@@ -114,9 +132,7 @@ fun ChessNavHost(
                         navController = navController
                     )
                 }
-
             }
-
             composable(
                 route = "${Screen.Game.route}/{gameId}/{playerColor}",
                 arguments = listOf(
@@ -134,20 +150,13 @@ fun ChessNavHost(
                     println("ERROR: Invalid playerColor string received in navigation: $playerColorString. Error: ${e.message}")
                     Piece.Team.WHITE
                 }
-
-
                 val firebaseService = FirebaseChess
-
                 val currentUserId = currentUserEmail
-
-
 
                 if (currentUserEmail == null) {
                     Text("Loading user..")
                     return@composable
                 }
-
-
                 val viewModel: ChessViewModel = viewModel(
                     factory = ChessViewModelFactory(
                         gameId = gameId,
@@ -156,9 +165,7 @@ fun ChessNavHost(
                         currentUserId = currentUserId!!
                     )
                 )
-
                 GameScreen(
-                    gameId = gameId,
                     viewModel = viewModel
                 )
             }

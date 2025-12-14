@@ -4,29 +4,21 @@ abstract class Piece(
     val team: Team,
     var position: Position?
 ) {
-
     abstract val fenCh: Char
-
-
 
     enum class Team {
         WHITE,
         BLACK
     }
-
     abstract fun getMoves(board: ChessGame): List<Position>
-
     open fun getLegalMoves(board: ChessGame): List<Position> {
         val currentPos = position ?: return emptyList()
         return getMoves(board).filter { move ->
             !board.wouldBeChecked(currentPos, move, team)
         }
     }
-
     fun isWhite() = team == Team.WHITE
-
     fun isEnemy(other: Piece?) = other != null && other.team != team
-
     protected fun addLineMoves(board: ChessGame, directions: List<Pair<Int, Int>>) : List<Position> {
         val moves = mutableListOf<Position>()
         val currentPosition = position ?: return emptyList()
@@ -50,7 +42,6 @@ abstract class Piece(
         }
         return moves
     }
-
     protected fun addMoves(board: ChessGame, deltas: List<Pair<Int, Int>>): List<Position> {
         val currentPosition = position ?: return emptyList()
         val (row, column) = currentPosition
@@ -66,7 +57,6 @@ abstract class Piece(
         }
     }
 }
-
 fun Piece.Team.otherTeam(): Piece.Team {
     return when (this) {
         Piece.Team.WHITE -> Piece.Team.BLACK

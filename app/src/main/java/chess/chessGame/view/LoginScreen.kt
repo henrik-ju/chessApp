@@ -25,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import chess.chessGame.viewModel.AuthViewModel
-
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit = {},
@@ -41,7 +40,6 @@ fun LoginScreen(
         onLoginSuccess()
         return
     }
-
     Column(
         modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.Center,
@@ -61,7 +59,6 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(10.dp))
-
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -71,9 +68,7 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(15.dp))
-
         if (loginError.isNotEmpty()) {
             Text(
                 text = loginError,
@@ -82,7 +77,6 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-
         Button(
             onClick = {
                 if (email.isBlank() || password.isBlank()) {
@@ -103,6 +97,15 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Create Account")
+        }
+
+        TextButton(
+            onClick = {
+                vm.loginAsGuest()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Continue as Guest")
         }
     }
 }

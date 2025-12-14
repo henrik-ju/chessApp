@@ -43,7 +43,7 @@ class ChessGame {
 
         var capturedPiece: Piece? = null
         if (piece is Pawn && from.column != to.column && getPieceAt(to) == null) {
-            val capturedRow = if (piece.isWhite()) to.row + 1 else to.row - 1
+            val capturedRow = from.row
             capturedPiece = board[capturedRow][to.column]
             board[capturedRow][to.column] = null
         }
@@ -58,8 +58,8 @@ class ChessGame {
             board[from.row][from.column] = piece
             board[to.row][to.column] = backupTo
             piece.position = fromPosition
-            if (capturedPiece != null) {
-                board[if (piece.isWhite()) to.row + 1 else to.row - 1][to.column] = capturedPiece
+            if (capturedPiece != null && originalCapturedPosition != null) {
+                board[originalCapturedPosition.row][originalCapturedPosition.column] = capturedPiece
                 capturedPiece.position = originalCapturedPosition
             }
             return false
@@ -188,10 +188,8 @@ class ChessGame {
                 }
             }
         }
-
         return false
     }
-
     fun isCheckMate(team: Piece.Team): Boolean {
         if (!isChecked(team))
             return false
@@ -204,47 +202,27 @@ class ChessGame {
 
                 val legalMoves = piece.getLegalMoves(this)
                 for(move in legalMoves){
-                    val backupPiece = board[move.row][move.column]
-                    val from = piece.position!!
-
-                    board[move.row][move.column] = piece
-                    board[from.row][from.column] = null
-                    piece.position = move
-
-                    val stillInCheck = isChecked(team)
-
-                    board[from.row][from.column] = piece
-                    board[move.row][move.column] = backupPiece
-                    piece.position = from
-
-                    if (!stillInCheck)
+                    if (!wouldBeChecked(piece.position!!, move, team))
                         return false
-
                 }
             }
         }
         return true
     }
-
     fun wouldBeChecked(from: Position, to: Position, team: Piece.Team): Boolean {
         val piece = getPieceAt(from) ?: return false
         val targetBackup = getPieceAt(to)
-
         val originalKingPos = if (team == Piece.Team.WHITE) whiteKingPosition else blackKingPosition
-
-
         val originalPiecePosition = piece.position
-
         var capturedPawn: Piece? = null
         var capturedPawnPos: Position? = null
 
         if (piece is Pawn && from.column != to.column && targetBackup == null) {
-            val capturedRow = if (piece.isWhite()) to.row + 1 else to.row - 1
+            val capturedRow = from.row
             capturedPawn = board[capturedRow][to.column]
             capturedPawnPos = capturedPawn?.position
             board[capturedRow][to.column] = null
         }
-
         board[to.row][to.column] = piece
         board[from.row][from.column] = null
         piece.position = to
@@ -260,7 +238,6 @@ class ChessGame {
         if (piece is King) {
             if (team == Piece.Team.WHITE) whiteKingPosition = tempKingPos!! else blackKingPosition = tempKingPos!!
         }
-
         board[from.row][from.column] = piece
         board[to.row][to.column] = targetBackup
         piece.position = originalPiecePosition
@@ -271,7 +248,6 @@ class ChessGame {
 
         return inCheck
     }
-
     fun isStaleMate(team: Piece.Team): Boolean {
         if(isChecked(team))
             return false
@@ -292,21 +268,15 @@ class ChessGame {
         }
         return true
     }
-
     fun setPieceAt(position: Position, piece: Piece?){
         board[position.row][position.column] = piece
         piece?.position = position
     }
-
-
-
     private fun clearBoard() {
         for (r in 0..7) for (c in 0..7) board[r][c] = null
     }
-
     fun toFen(): String {
         val sb = StringBuilder()
-
 
         for (row in 0..7) {
             var empty = 0
@@ -320,7 +290,6 @@ class ChessGame {
             if (empty > 0) sb.append(empty)
             if (row < 7) sb.append('/')
         }
-
         sb.append(if (currentTeam == Piece.Team.WHITE) " w" else " b")
 
         val whiteKing = getPieceAt(whiteKingPosition) as? King
@@ -350,31 +319,21 @@ class ChessGame {
         } else {
             "-"
         }
-
         sb.append(" $enPassantSquare")
-
         sb.append(" 0")
-
         sb.append(" 1")
-
         return sb.toString()
     }
 
-
-
     companion object {
-
         fun fromFen(fen: String): ChessGame {
             val game = ChessGame()
             game.clearBoard()
 
             val parts = fen.split(" ")
             val rows = parts[0].split("/")
-
             val castlingRights = parts.getOrNull(2) ?: "-"
-
             val enPassantTarget = parts.getOrNull(3) ?: "-"
-
 
             for (r in 0..7) {
                 var c = 0
@@ -404,11 +363,11 @@ class ChessGame {
                             'R' -> Rook(team, Position(r, c)).apply {
 
                                 if (team == Piece.Team.WHITE) {
-                                    if (r == 7 && c == 7) hasMoved = !castlingRights.contains('K') // King-side Rook
-                                    if (r == 7 && c == 0) hasMoved = !castlingRights.contains('Q') // Queen-side Rook
+                                    if (r == 7 && c == 7) hasMoved = !castlingRights.contains('K')
+                                    if (r == 7 && c == 0) hasMoved = !castlingRights.contains('Q')
                                 } else {
-                                    if (r == 0 && c == 7) hasMoved = !castlingRights.contains('k') // King-side Rook
-                                    if (r == 0 && c == 0) hasMoved = !castlingRights.contains('q') // Queen-side Rook
+                                    if (r == 0 && c == 7) hasMoved = !castlingRights.contains('k')
+                                    if (r == 0 && c == 0) hasMoved = !castlingRights.contains('q')
                                 }
                             }
                             'B' -> Bishop(team, Position(r, c))
@@ -421,9 +380,7 @@ class ChessGame {
                     }
                 }
             }
-
             game.currentTeam = if (parts.getOrNull(1) == "w") Piece.Team.WHITE else Piece.Team.BLACK
-
 
             if (enPassantTarget != "-") {
 
@@ -432,8 +389,6 @@ class ChessGame {
             } else {
                 game.lastDoublePushColumn = null
             }
-
-
             return game
         }
     }

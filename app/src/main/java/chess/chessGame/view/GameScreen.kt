@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -23,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -34,18 +36,16 @@ import androidx.compose.ui.unit.sp
 import chess.chessGame.model.*
 import kotlinx.coroutines.launch
 import chess.chessGame.viewModel.ChessViewModel
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun GameScreen(
-    gameId: String,
     viewModel: ChessViewModel
 ) {
     val game by viewModel.game
     val selected by viewModel.selected
     val moveError by viewModel.moveError
-
     val scrollState = rememberScrollState()
-
 
     Column(
         modifier = Modifier
@@ -55,26 +55,20 @@ fun GameScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-
-
         Text(
             text = "You are: ${if (viewModel.userTeam == Piece.Team.WHITE) "White" else "Black"}",
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(top = 8.dp)
         )
-
         Spacer(Modifier.height(16.dp))
-
         Text(
             text = "Turn: ${if (game.currentTeam == Piece.Team.WHITE) "White" else "Black"}",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = if (game.currentTeam == viewModel.userTeam) Color.Green else Color.Red
         )
-
         Spacer(Modifier.height(16.dp))
-
         moveError?.let { error ->
             Text(
                 text = "⚠️ $error",
@@ -90,24 +84,25 @@ fun GameScreen(
             Spacer(Modifier.height(8.dp))
         }
 
-        Spacer(Modifier.height(32.dp))
+        OpponentInformation(
+            username = viewModel.opponentUsername.collectAsState().value,
+            photoUrl = viewModel.opponentPhotoUrl.collectAsState().value
+        )
 
+        Spacer(Modifier.height(32.dp))
         Chessboard(
             game = game,
             selected = selected,
             userTeam = viewModel.userTeam,
             onSquareClick = viewModel::onSquareClicked
         )
-
         Spacer(Modifier.height(24.dp))
         ChatBox(viewModel = viewModel)
         Spacer(Modifier.height(16.dp))
 
         viewModel.promotionPosition.value?.let { pos ->
             PromotionDialog(
-
                 team = game.currentTeam.otherTeam(),
-
                 onSelect = { newPiece ->
                     viewModel.promotePawn(newPiece)
                 },
@@ -118,7 +113,6 @@ fun GameScreen(
         }
     }
 }
-
 
 @Composable
 fun Chessboard(
@@ -171,7 +165,6 @@ fun Chessboard(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(4.dp)
-
                             )
                         }
                     }
@@ -180,7 +173,6 @@ fun Chessboard(
         }
     }
 }
-
 @Composable
 fun ChatBox(viewModel: ChessViewModel) {
     val messages by viewModel.decryptedChatMessages.collectAsState(initial = emptyList())
@@ -214,7 +206,6 @@ fun ChatBox(viewModel: ChessViewModel) {
                             append(sender)
                             append(": ")
                         }
-
                         append(text)
                     },
                     fontSize = 14.sp,
@@ -252,6 +243,38 @@ fun ChatBox(viewModel: ChessViewModel) {
             ) {
                 Text("Send")
             }
+        }
+    }
+}
+
+@Composable
+fun OpponentInformation(
+    username: String?,
+    photoUrl: String?
+) {
+    if (username == null && photoUrl == null)
+        return
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        if (photoUrl != null) {
+            Image(
+                painter = rememberAsyncImagePainter(photoUrl),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
+        if (username != null) {
+            Text(
+                text = username,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }

@@ -9,7 +9,6 @@ class King(team: Team, position: Position?) : Piece(team, position) {
             !board.wouldBeChecked(position!!, move, team)
         }
     }
-
     override fun getMoves(board: ChessGame): List<Position> {
         val deltas = listOf(
             1 to 0, -1 to 0, 0 to 1, 0 to -1,
@@ -37,7 +36,6 @@ class King(team: Team, position: Position?) : Piece(team, position) {
                 }
             }
         }
-
         return moves
     }
 }

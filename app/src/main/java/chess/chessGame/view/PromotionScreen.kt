@@ -24,7 +24,6 @@ import chess.chessGame.model.Position
 import chess.chessGame.model.Queen
 import chess.chessGame.model.Rook
 
-
 @Composable
 fun PromotionDialog(
     team: Piece.Team,

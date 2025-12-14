@@ -45,9 +45,7 @@ fun CreateAccountScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Create Account", style = MaterialTheme.typography.headlineMedium)
-
         Spacer(modifier = Modifier.height(20.dp))
-
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -56,9 +54,7 @@ fun CreateAccountScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -67,9 +63,7 @@ fun CreateAccountScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -79,9 +73,7 @@ fun CreateAccountScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(20.dp))
-
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -91,7 +83,6 @@ fun CreateAccountScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(20.dp))
 
         if (error.isNotEmpty() || vmError.isNotEmpty()) {
@@ -102,11 +93,9 @@ fun CreateAccountScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-
         Button(
             onClick = {
                 vm.setError("")
-
                 when {
                     username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
                         error = "Please fill in all fields"
@@ -126,7 +115,6 @@ fun CreateAccountScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         OutlinedButton(
             onClick = {
                 navController.popBackStack()
