@@ -1,4 +1,4 @@
-package viewModel
+package chess.chessGame.viewModel
 
 import android.app.Application
 import android.content.Context

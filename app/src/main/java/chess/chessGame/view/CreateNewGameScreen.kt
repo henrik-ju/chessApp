@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -27,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import chess.chessGame.model.Piece
 import kotlinx.coroutines.launch
-import viewModel.GameLobbyViewModel
+import chess.chessGame.viewModel.GameLobbyViewModel
 
 @Composable
 fun CreateGameScreen(

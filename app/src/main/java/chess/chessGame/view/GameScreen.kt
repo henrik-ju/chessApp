@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import chess.chessGame.model.*
 import kotlinx.coroutines.launch
-import viewModel.ChessViewModel
+import chess.chessGame.viewModel.ChessViewModel
 
 @Composable
 fun GameScreen(

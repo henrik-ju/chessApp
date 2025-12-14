@@ -25,10 +25,10 @@ import chess.chessGame.view.GameScreen
 import chess.chessGame.view.LobbyScreen
 import chess.chessGame.view.LoginScreen
 import kotlinx.coroutines.launch
-import viewModel.AuthViewModel
-import viewModel.ChessViewModel
-import viewModel.ChessViewModelFactory
-import viewModel.GameLobbyViewModel
+import chess.chessGame.viewModel.AuthViewModel
+import chess.chessGame.viewModel.ChessViewModel
+import chess.chessGame.viewModel.ChessViewModelFactory
+import chess.chessGame.viewModel.GameLobbyViewModel
 import chess.chessGame.view.ChessAppLoadingScreen
 
 @Composable

@@ -20,9 +20,9 @@ import chess.chessGame.model.FirebaseChess
 import chess.chessGame.navigation.ChessNavHost
 import chess.chessGame.ui.theme.AndroidProjectTheme
 import com.google.firebase.FirebaseApp
-import viewModel.AuthViewModel
-import viewModel.GameLobbyViewModel
-import viewModel.GameLobbyViewModelFactory
+import chess.chessGame.viewModel.AuthViewModel
+import chess.chessGame.viewModel.GameLobbyViewModel
+import chess.chessGame.viewModel.GameLobbyViewModelFactory
 
 class MainActivity : ComponentActivity() {
 

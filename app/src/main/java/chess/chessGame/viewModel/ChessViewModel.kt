@@ -1,4 +1,4 @@
-package viewModel
+package chess.chessGame.viewModel
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf

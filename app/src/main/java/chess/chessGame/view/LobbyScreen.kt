@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chess.chessGame.model.GameLobby
-import viewModel.GameLobbyViewModel
+import chess.chessGame.viewModel.GameLobbyViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController

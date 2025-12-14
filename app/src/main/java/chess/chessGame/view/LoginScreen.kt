@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import viewModel.AuthViewModel
+import chess.chessGame.viewModel.AuthViewModel
 
 @Composable
 fun LoginScreen(
