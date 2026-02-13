@@ -83,8 +83,6 @@ class MainActivity : ComponentActivity() {
                         gameLobbyVm = gameLobbyViewModel,
                         isReady = isReady
                     )
-
-
                 }
             }
         }
